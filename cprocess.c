@@ -27,6 +27,11 @@ struct compile_process *compile_process_create(const char *filename,
   process->ofile = out_file;
   process->generator = codegenerator_new(process);
   process->resolver = resolver_default_new_process(process);
+  process->nodeGarbageVec = vector_create(sizeof(struct node *));
+  process->gb = vector_create(sizeof(void *));
+  process->gbForVectors = vector_create(sizeof(struct vector *));
+  process->gbVectorForCustonResolverEntities =
+      vector_create(sizeof(struct resolver_entity *));
 
   symresolver_initialize(process);
   symresolver_new_table(process);
@@ -45,6 +50,27 @@ char compile_process_next_char(struct lex_process *lex_process) {
 
   return c;
 }
+void freeVectorContentsVectors(struct vector *vecToFree) {
+  struct vector **data = (struct vector **)vector_peek(vecToFree);
+  while (data) {
+    if (*data) {
+      vector_free(*data);
+    }
+    data = (struct vector **)vector_peek(vecToFree);
+  }
+}
+
+void freeVectorContents(struct vector *vecToFree) {
+  vector_set_peek_pointer(vecToFree, 0);
+  void **data = (void **)vector_peek(vecToFree);
+  while (data) {
+    if (*data) {
+      free(*data);
+    }
+    data = (void **)vector_peek(vecToFree);
+  }
+}
+
 void free_compile_process(struct compile_process *cp) {
   if (cp->cfile.fp) {
     fclose(cp->cfile.fp);
@@ -52,6 +78,14 @@ void free_compile_process(struct compile_process *cp) {
   if (cp->ofile) {
     fclose(cp->ofile);
   }
+  freeVectorContents(cp->nodeGarbageVec);
+  vector_free(cp->node_tree_vec);
+  vector_free(cp->node_vec);
+  vector_free(cp->nodeGarbageVec);
+  freeVectorContentsVectors(cp->gbForVectors);
+  freeVectorContents(cp->gb);
+  vector_free(cp->gbVectorForCustonResolverEntities);
+  vector_free(cp->gb);
 }
 char compile_process_peek_char(struct lex_process *lex_process) {
   struct compile_process *compiler = lex_process->compiler;

@@ -186,6 +186,13 @@ struct compile_process {
     struct vector *tables;
   } symbols;
 
+  // garbage collecting
+  struct vector *nodeGarbageVec;
+  struct vector *gb;
+  struct vector *gbForVectors;
+  struct vector *trackedScopes;
+  struct vector *gbVectorForCustonResolverEntities;
+
   // Pointer to our codegenerator.
   struct code_generator *generator;
   struct resolver_process *resolver;
