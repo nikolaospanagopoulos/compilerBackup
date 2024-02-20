@@ -3,6 +3,7 @@
 #include "helpers/vector.h"
 #include <assert.h>
 #include <ctype.h>
+#include <stdlib.h>
 #include <string.h>
 
 #define LEX_GETC_IF(buffer, c, exp)                                            \
@@ -31,6 +32,21 @@ static char nextc() {
   }
 
   return c;
+}
+
+void freeLexProcess(struct lex_process *lexProcess) {
+  vector_set_peek_pointer(lexProcess->token_vec, 0);
+  struct token *tok = vector_peek(lexProcess->token_vec);
+  while (tok) {
+    if (tok->type == TOKEN_TYPE_STRING || tok->type == TOKEN_TYPE_OPERATOR ||
+        tok->type == TOKEN_TYPE_IDENTIFIER || tok->type == TOKEN_TYPE_KEYWORD ||
+        tok->type == TOKEN_TYPE_KEYWORD) {
+      free((char *)tok->sval);
+    }
+    tok = vector_peek(lexProcess->token_vec);
+  }
+  vector_free(lexProcess->token_vec);
+  free(lexProcess);
 }
 
 static void pushc(char c) { lex_process->function->push_char(lex_process, c); }
@@ -121,8 +137,15 @@ static struct token *token_make_string(char start_delim, char end_delim) {
   }
 
   buffer_write(buf, 0x00);
-  return token_create(
-      &(struct token){.type = TOKEN_TYPE_STRING, .sval = buffer_ptr(buf)});
+  char *stringVal = buffer_ptr(buf);
+  char *toCopyToToken = (char *)malloc(strlen(stringVal) + 1);
+  strncpy(toCopyToToken, stringVal, strlen(stringVal) + 1);
+
+  struct token *tok = token_create(
+      &(struct token){.type = TOKEN_TYPE_STRING, .sval = toCopyToToken});
+  buffer_free(buf);
+
+  return tok;
 }
 
 static bool op_treated_as_one(char op) {
@@ -159,7 +182,7 @@ void read_op_flush_back_keep_first(struct buffer *buffer) {
     pushc(data[i]);
   }
 }
-const char *read_op() {
+struct buffer *read_op() {
   bool single_operator = true;
   char op = nextc();
   struct buffer *buffer = buffer_create();
@@ -187,7 +210,7 @@ const char *read_op() {
                    ptr);
   }
 
-  return ptr;
+  return buffer;
 }
 
 static void lex_new_expression() {
@@ -199,6 +222,7 @@ static void lex_new_expression() {
 
 static void lex_finish_expression() {
   lex_process->current_expression_count--;
+  buffer_free(lex_process->parentheses_buffer);
   if (lex_process->current_expression_count < 0) {
     compiler_error(lex_process->compiler,
                    "You closed an expression that you never opened\n");
@@ -237,11 +261,16 @@ static struct token *token_make_operator_or_string() {
     }
   }
 
+  struct buffer *buffer = read_op();
+  char *stringVal = buffer_ptr(buffer);
+  char *toCopyToToken = (char *)malloc(strlen(stringVal) + 1);
+  strncpy(toCopyToToken, stringVal, strlen(stringVal) + 1);
   struct token *token = token_create(
-      &(struct token){.type = TOKEN_TYPE_OPERATOR, .sval = read_op()});
+      &(struct token){.type = TOKEN_TYPE_OPERATOR, .sval = toCopyToToken});
   if (op == '(') {
     lex_new_expression();
   }
+  buffer_free(buffer);
 
   return token;
 }
@@ -250,8 +279,14 @@ struct token *token_make_one_line_comment() {
   struct buffer *buffer = buffer_create();
   char c = 0;
   LEX_GETC_IF(buffer, c, c != '\n' && c != EOF);
+  buffer_write(buffer, 0x00);
+  char *stringval = buffer_ptr(buffer);
+  char *toCopyToToken = (char *)malloc(strlen(stringval) + 1);
+  strncpy(toCopyToToken, stringval, strlen(stringval) + 1);
+  buffer_free(buffer);
+
   return token_create(
-      &(struct token){.type = TOKEN_TYPE_COMMENT, .sval = buffer_ptr(buffer)});
+      &(struct token){.type = TOKEN_TYPE_COMMENT, .sval = toCopyToToken});
 }
 
 struct token *token_make_multiline_comment() {
@@ -272,8 +307,13 @@ struct token *token_make_multiline_comment() {
       }
     }
   }
+  char *stringval = buffer_ptr(buffer);
+  char *toCopyToToken = (char *)malloc(strlen(stringval) + 1);
+  strncpy(toCopyToToken, stringval, strlen(stringval) + 1);
+  buffer_free(buffer);
+
   return token_create(
-      &(struct token){.type = TOKEN_TYPE_COMMENT, .sval = buffer_ptr(buffer)});
+      &(struct token){.type = TOKEN_TYPE_COMMENT, .sval = toCopyToToken});
 }
 
 struct token *handle_comment() {
@@ -316,14 +356,22 @@ static struct token *token_make_identifier_or_keyword() {
   // null terminator
   buffer_write(buffer, 0x00);
 
+  char *stringval = buffer_ptr(buffer);
+  char *toCopyToToken = (char *)malloc(strlen(stringval) + 1);
+  strncpy(toCopyToToken, stringval, strlen(stringval) + 1);
+
+  struct token *token = NULL;
+
   // Check if this is a keyword
   if (is_keyword(buffer_ptr(buffer))) {
-    return token_create(&(struct token){.type = TOKEN_TYPE_KEYWORD,
-                                        .sval = buffer_ptr(buffer)});
+    token = token_create(
+        &(struct token){.type = TOKEN_TYPE_KEYWORD, .sval = toCopyToToken});
+  } else {
+    token = token_create(
+        &(struct token){.type = TOKEN_TYPE_IDENTIFIER, .sval = toCopyToToken});
   }
-
-  return token_create(&(struct token){.type = TOKEN_TYPE_IDENTIFIER,
-                                      .sval = buffer_ptr(buffer)});
+  buffer_free(buffer);
+  return token;
 }
 
 struct token *read_special_token() {

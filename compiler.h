@@ -982,5 +982,7 @@ struct fixup *fixup_register(struct fixup_system *system,
 bool fixup_resolve(struct fixup *fixup);
 void *fixup_private(struct fixup *fixup);
 bool fixups_resolve(struct fixup_system *system);
+void free_compile_process(struct compile_process *cp);
+void freeLexProcess(struct lex_process *lexProcess);
 
 #endif
