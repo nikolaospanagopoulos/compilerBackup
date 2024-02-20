@@ -83,6 +83,7 @@ void free_compile_process(struct compile_process *cp) {
   vector_free(cp->node_vec);
   vector_free(cp->nodeGarbageVec);
   freeVectorContentsVectors(cp->gbForVectors);
+  vector_free(cp->gbForVectors);
   freeVectorContents(cp->gb);
   vector_free(cp->gbVectorForCustonResolverEntities);
   vector_free(cp->gb);

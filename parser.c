@@ -38,6 +38,7 @@ parser_new_scope_entity(struct node *node, int stack_offset, int flags) {
   entity->node = node;
   entity->flags = flags;
   entity->stack_offset = stack_offset;
+  vector_push(current_process->gb, &entity);
   return entity;
 }
 
@@ -96,6 +97,7 @@ parser_new_switch_statement(struct history *history) {
   history->_switch.case_data.cases =
       vector_create(sizeof(struct parsed_switch_case));
   history->flags |= HISTORY_FLAG_IN_SWITCH_STATEMENT;
+  vector_push(current_process->gbForVectors, &history->_switch.case_data.cases);
   return history->_switch;
 }
 
@@ -613,6 +615,7 @@ void parser_datatype_adjust_size_for_secondary(
   datatype->size += secondary_data_type->size;
   datatype->secondary = secondary_data_type;
   datatype->flags |= DATATYPE_FLAG_IS_SECONDARY;
+  vector_push(current_process->gb, &secondary_data_type);
 }
 
 void parser_datatype_init_type_and_size_for_primitive(
@@ -834,6 +837,7 @@ void make_variable_node(struct datatype *dtype, struct token *name_token,
       !var_node->var.type.struct_node) {
     struct datatype_struct_node_fix_private *private =
         calloc(1, sizeof(struct datatype_struct_node_fix_private));
+    vector_push(current_process->gb, &private);
     private->node = var_node;
     fixup_register(parser_fixup_sys,
                    &(struct fixup_config){.fix = datatype_struct_node_fix,
@@ -1214,6 +1218,7 @@ void parse_body(size_t *variable_size, struct history *history) {
   }
 
   struct vector *body_vec = vector_create(sizeof(struct node *));
+  vector_push(current_process->gbForVectors, &body_vec);
   if (!token_next_is_symbol('{')) {
     parse_body_single_statement(variable_size, body_vec, history);
     parser_scope_finish();
@@ -1353,6 +1358,7 @@ void parse_variable_full(struct history *history) {
 struct vector *parse_function_arguments(struct history *history) {
   parser_scope_new();
   struct vector *arguments_vec = vector_create(sizeof(struct node *));
+  vector_push(current_process->gbForVectors, &arguments_vec);
   while (!token_next_is_symbol(')')) {
     if (token_next_is_operator(".")) {
       token_read_dots(3);
