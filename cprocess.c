@@ -33,7 +33,6 @@ struct compile_process *compile_process_create(const char *filename,
   process->gbVectorForCustonResolverEntities =
       vector_create(sizeof(struct resolver_entity *));
 
-  process->trackedScopes = vector_create(sizeof(struct resolver_scope *));
   symresolver_initialize(process);
   symresolver_new_table(process);
 
@@ -78,6 +77,10 @@ void freeCustomEntitiesVector(struct vector *vecOfCustomEntities) {
       (struct resolver_entity **)vector_peek(vecOfCustomEntities);
   while (data) {
     if (*data) {
+      if ((*data)->func_call_data.arguments) {
+        // freeVectorContents((*data)->func_call_data.arguments);
+        vector_free((*data)->func_call_data.arguments);
+      }
       if ((*data)->private) {
         free((*data)->private);
       }
@@ -135,14 +138,17 @@ void free_compile_process(struct compile_process *cp) {
   vector_free(cp->node_tree_vec);
   vector_free(cp->node_vec);
   vector_free(cp->nodeGarbageVec);
+
   freeVectorContentsVectors(cp->gbForVectors);
 
   vector_free(cp->gbForVectors);
+  fixup_sys_free(cp->parser_fixup_sys);
 
   resolverFree(cp);
   codegenFree(cp);
   freeVectorContents(cp->gb);
   vector_free(cp->gb);
+  free(cp);
 }
 char compile_process_peek_char(struct lex_process *lex_process) {
   struct compile_process *compiler = lex_process->compiler;

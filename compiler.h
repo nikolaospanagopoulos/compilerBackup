@@ -167,6 +167,7 @@ struct compile_process {
   } cfile;
 
   // A vector of tokens from lexical analysis.
+  struct fixup_system*parser_fixup_sys;
   struct vector *token_vec;
 
   struct vector *node_vec;
@@ -192,6 +193,7 @@ struct compile_process {
   struct vector *gbForVectors;
   struct vector *trackedScopes;
   struct vector *gbVectorForCustonResolverEntities;
+  struct vector *vectorOfFunctionArgumentsVectors;
 
   // Pointer to our codegenerator.
   struct code_generator *generator;

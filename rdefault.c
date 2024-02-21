@@ -1,6 +1,7 @@
 #include "compiler.h"
 #include <assert.h>
 #include <memory.h>
+#include <stdio.h>
 #include <stdlib.h>
 struct resolver_default_entity_data *
 resolver_default_entity_private(struct resolver_entity *entity) {

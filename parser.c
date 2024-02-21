@@ -1787,6 +1787,7 @@ int parse(struct compile_process *process) {
   parser_blank_node = node_create(&(struct node){.type = NODE_TYPE_BLANK});
   parser_fixup_sys = fixup_sys_new();
 
+  current_process->parser_fixup_sys = parser_fixup_sys;
   struct node *node = NULL;
   vector_set_peek_pointer(process->token_vec, 0);
   while (parse_next() == 0) {
