@@ -1782,7 +1782,8 @@ int parse(struct compile_process *process) {
   scope_create_root(process);
   current_process = process;
   parser_last_token = NULL;
-  node_set_vector(process->node_vec, process->node_tree_vec);
+  node_set_vector(process->node_vec, process->node_tree_vec,
+                  process->nodeGarbageVec, process->gbForVectors);
   parser_blank_node = node_create(&(struct node){.type = NODE_TYPE_BLANK});
   parser_fixup_sys = fixup_sys_new();
 

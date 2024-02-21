@@ -83,6 +83,7 @@ struct history {
 static struct history *history_begin(int flags) {
   struct history *history = calloc(1, sizeof(struct history));
   history->flags = flags;
+  vector_push(current_process->gb, &history);
   return history;
 }
 
@@ -90,6 +91,7 @@ static struct history *history_down(struct history *history, int flags) {
   struct history *new_history = calloc(1, sizeof(struct history));
   memcpy(new_history, history, sizeof(struct history));
   new_history->flags = flags;
+  vector_push(current_process->gb, &new_history);
   return new_history;
 }
 
@@ -1115,6 +1117,18 @@ void codegen_generate_exp_node_for_logical_arithmetic(struct node *node,
     asm_push_ins_push("eax", STACK_FRAME_ELEMENT_TYPE_PUSHED_VALUE,
                       "result_value");
   }
+}
+
+struct datatype *datatype_pointer_reduce(struct datatype *dtype, int by) {
+  struct datatype *newDatatype = calloc(1, sizeof(struct datatype));
+  memcpy(newDatatype, dtype, sizeof(struct datatype));
+  newDatatype->pointer_depth -= by;
+  if (newDatatype->pointer_depth <= 0) {
+    newDatatype->flags &= ~DATATYPE_FLAG_IS_POINTER;
+    newDatatype->pointer_depth = 0;
+  }
+  vector_push(current_process->gb, &newDatatype);
+  return newDatatype;
 }
 
 void codegen_generate_exp_node_for_arithmetic(struct node *node,

@@ -33,6 +33,7 @@ struct compile_process *compile_process_create(const char *filename,
   process->gbVectorForCustonResolverEntities =
       vector_create(sizeof(struct resolver_entity *));
 
+  process->trackedScopes = vector_create(sizeof(struct resolver_scope *));
   symresolver_initialize(process);
   symresolver_new_table(process);
 
@@ -71,6 +72,58 @@ void freeVectorContents(struct vector *vecToFree) {
   }
 }
 
+void freeCustomEntitiesVector(struct vector *vecOfCustomEntities) {
+  vector_set_peek_pointer(vecOfCustomEntities, 0);
+  struct resolver_entity **data =
+      (struct resolver_entity **)vector_peek(vecOfCustomEntities);
+  while (data) {
+    if (*data) {
+      if ((*data)->private) {
+        free((*data)->private);
+      }
+      free(*data);
+    }
+    data = (struct resolver_entity **)vector_peek(vecOfCustomEntities);
+  }
+}
+
+void freeResolverTrackedScopes(struct compile_process *process) {
+  vector_set_peek_pointer(process->trackedScopes, 0);
+  struct resolver_scope **data =
+      (struct resolver_scope **)vector_peek(process->trackedScopes);
+  while (data) {
+    if ((*data)->entities) {
+
+      vector_free((*data)->entities);
+    }
+    if (*data) {
+      free((*data)->private);
+      free(*data);
+    }
+    data = (struct resolver_scope **)vector_peek(process->trackedScopes);
+  }
+}
+
+void codegenFree(struct compile_process *process) {
+  vector_free(process->generator->exit_points);
+  vector_free(process->generator->entry_points);
+  freeVectorContents(process->generator->string_table);
+  vector_free(process->generator->string_table);
+  freeVectorContents(process->generator->responses);
+  vector_free(process->generator->responses);
+  free(process->generator);
+}
+
+void resolverFree(struct compile_process *process) {
+
+  freeResolverTrackedScopes(process);
+  vector_free(process->trackedScopes);
+  freeCustomEntitiesVector(process->gbVectorForCustonResolverEntities);
+  vector_free(process->gbVectorForCustonResolverEntities);
+
+  free(process->resolver);
+}
+
 void free_compile_process(struct compile_process *cp) {
   if (cp->cfile.fp) {
     fclose(cp->cfile.fp);
@@ -83,9 +136,12 @@ void free_compile_process(struct compile_process *cp) {
   vector_free(cp->node_vec);
   vector_free(cp->nodeGarbageVec);
   freeVectorContentsVectors(cp->gbForVectors);
+
   vector_free(cp->gbForVectors);
+
+  resolverFree(cp);
+  codegenFree(cp);
   freeVectorContents(cp->gb);
-  vector_free(cp->gbVectorForCustonResolverEntities);
   vector_free(cp->gb);
 }
 char compile_process_peek_char(struct lex_process *lex_process) {
