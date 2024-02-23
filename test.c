@@ -1,11 +1,7 @@
-int test(int a)
-{
+int test(int a) {}
 
-}
+int main() {
+  int b = 0;
 
-int main()
-{
-    int b = 0;
-
-    test(50);
+  test(50);
 }

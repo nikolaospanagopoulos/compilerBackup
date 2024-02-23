@@ -125,7 +125,10 @@ struct token *token_make_number() {
 
 static struct token *token_make_string(char start_delim, char end_delim) {
   struct buffer *buf = buffer_create();
-  assert(nextc() == start_delim);
+  if (nextc() != start_delim) {
+    compiler_error(lex_process->compiler,
+                   "not a right opening for a string \n");
+  }
   char c = nextc();
   for (; c != end_delim && c != EOF; c = nextc()) {
     if (c == '\\') {

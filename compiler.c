@@ -19,6 +19,8 @@ void compiler_error(struct compile_process *compiler, const char *msg, ...) {
   va_end(args);
   fprintf(stderr, " on line %i, col %i in file %s\n", compiler->pos.line,
           compiler->pos.col, compiler->pos.filename);
+  freeLexProcess(lexPrc);
+  free_compile_process(compiler);
   exit(-1);
 }
 
@@ -54,11 +56,16 @@ int compile_file(const char *filename, const char *out_filename, int flags) {
   process->token_vec = lex_process->token_vec;
 
   // Preform parsing
+  set_compile_process_for_array(process);
 
   if (parse(process) != PARSE_ALL_OK) {
     freeLexProcess(lex_process);
     return COMPILER_FAILED_WITH_ERRORS;
   }
+
+  set_compile_process_for_helpers(process);
+  set_compile_process_for_stack_frame(process);
+  set_compile_process_for_resolver_default_handler(process);
 
   if (codegen(process) != CODEGEN_ALL_OK) {
     freeLexProcess(lex_process);

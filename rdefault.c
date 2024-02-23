@@ -3,6 +3,14 @@
 #include <memory.h>
 #include <stdio.h>
 #include <stdlib.h>
+
+static struct compile_process *cp;
+
+void set_compile_process_for_resolver_default_handler(
+    struct compile_process *compile_proc) {
+  cp = compile_proc;
+}
+
 struct resolver_default_entity_data *
 resolver_default_entity_private(struct resolver_entity *entity) {
   return entity->private;
@@ -99,7 +107,10 @@ resolver_default_new_entity_data_for_var_node(struct node *var_node, int offset,
                                               int flags) {
   struct resolver_default_entity_data *entity_data =
       resolver_default_new_entity_data();
-  assert(variable_node(var_node));
+  // assert(variable_node(var_node));
+  if (!variable_node(var_node)) {
+    compiler_error(cp, "resolver handler error: variable node not set \n");
+  }
   entity_data->offset = offset;
   entity_data->flags = flags;
   entity_data->type = RESOLVER_DEFAULT_ENTITY_DATA_TYPE_VARIABLE;
@@ -132,7 +143,10 @@ struct resolver_entity *
 resolver_default_new_scope_entity(struct resolver_process *resolver,
                                   struct node *var_node, int offset,
                                   int flags) {
-  assert(var_node->type == NODE_TYPE_VARIABLE);
+  // assert(var_node->type == NODE_TYPE_VARIABLE);
+  if (var_node->type != NODE_TYPE_VARIABLE) {
+    compiler_error(cp, "resolver handler error: not a variable node \n");
+  }
   struct resolver_default_entity_data *entity_data =
       resolver_default_new_entity_data_for_var_node(variable_node(var_node),
                                                     offset, flags);
@@ -176,7 +190,11 @@ void resolver_default_delete_scope(struct resolver_scope *scope) {
 
 static void resolver_default_merge_array_calculate_out_offset(
     struct datatype *dtype, struct resolver_entity *entity, int *out_offset) {
-  assert(entity->array.array_index_node->type == NODE_TYPE_NUMBER);
+  // assert(entity->array.array_index_node->type == NODE_TYPE_NUMBER);
+  if (entity->array.array_index_node->type != NODE_TYPE_NUMBER) {
+    compiler_error(cp,
+                   "resolver handler error: array index is not a number \n");
+  }
   int index_val = entity->array.array_index_node->llnum;
   *(out_offset) += array_offset(dtype, entity->array.index, index_val);
 }

@@ -167,7 +167,7 @@ struct compile_process {
   } cfile;
 
   // A vector of tokens from lexical analysis.
-  struct fixup_system*parser_fixup_sys;
+  struct fixup_system *parser_fixup_sys;
   struct vector *token_vec;
 
   struct vector *node_vec;
@@ -995,5 +995,11 @@ void *fixup_private(struct fixup *fixup);
 bool fixups_resolve(struct fixup_system *system);
 void free_compile_process(struct compile_process *cp);
 void freeLexProcess(struct lex_process *lexProcess);
+void set_compile_process_for_stack_frame(
+    struct compile_process *compile_process);
+void set_compile_process_for_array(struct compile_process *compile_proc);
+void set_compile_process_for_resolver_default_handler(
+    struct compile_process *compile_proc);
+void set_compile_process_for_helpers(struct compile_process *compile_proc);
 
 #endif

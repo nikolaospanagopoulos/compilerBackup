@@ -142,10 +142,12 @@ void free_compile_process(struct compile_process *cp) {
   freeVectorContentsVectors(cp->gbForVectors);
 
   vector_free(cp->gbForVectors);
-  fixup_sys_free(cp->parser_fixup_sys);
 
   resolverFree(cp);
   codegenFree(cp);
+  if (cp->parser_fixup_sys) {
+    fixup_sys_free(cp->parser_fixup_sys);
+  }
   freeVectorContents(cp->gb);
   vector_free(cp->gb);
   free(cp);
