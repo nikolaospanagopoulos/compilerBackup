@@ -106,7 +106,9 @@ void parser_end_switch_statement(struct parser_history_switch *switch_history) {
 }
 
 void parser_register_case(struct history *history, struct node *case_node) {
-  assert(history->flags & HISTORY_FLAG_IN_SWITCH_STATEMENT);
+  if (!(history->flags & HISTORY_FLAG_IN_SWITCH_STATEMENT)) {
+    compiler_error(current_process, "Not inside a switch statement \n");
+  }
   struct parsed_switch_case scase;
   scase.index = case_node->stmt._case.exp->llnum;
   vector_push(history->_switch.case_data.cases, &scase);
@@ -272,8 +274,14 @@ static bool parser_left_op_has_priority(const char *op_left,
 }
 
 void parser_node_shift_children_left(struct node *node) {
-  assert(node->type == NODE_TYPE_EXPRESSION);
-  assert(node->exp.right->type == NODE_TYPE_EXPRESSION);
+  if (node->type != NODE_TYPE_EXPRESSION) {
+    compiler_error(current_process, "parser error: not an expression node \n");
+  }
+  if (node->exp.right->type != NODE_TYPE_EXPRESSION) {
+    compiler_error(
+        current_process,
+        "parser error: expression right node is not an expression \n");
+  }
 
   const char *right_op = node->exp.right->exp.op;
   struct node *new_exp_left_node = node->exp.left;
@@ -508,7 +516,10 @@ int parse_exp(struct history *history) {
 }
 
 void parse_identifier(struct history *history) {
-  assert(token_peek_next()->type == TOKEN_TYPE_IDENTIFIER);
+  if (token_peek_next()->type != TOKEN_TYPE_IDENTIFIER) {
+    compiler_error(current_process, "parser error: not an identifier token \n");
+  }
+
   parse_single_token_to_node();
 }
 
@@ -664,9 +675,15 @@ size_t size_of_struct(const char *struct_name) {
     return 0;
   }
 
-  assert(sym->type == SYMBOL_TYPE_NODE);
+  if (sym->type != SYMBOL_TYPE_NODE) {
+    compiler_error(current_process,
+                   "parser error: not a symbol type of node\n");
+  }
   struct node *node = sym->data;
-  assert(node->type == NODE_TYPE_STRUCT);
+  if (node->type != NODE_TYPE_STRUCT) {
+    compiler_error(current_process,
+                   "parser error: not a symbol type of struct\n");
+  }
   return node->_struct.body_n->body.size;
 }
 
@@ -1795,7 +1812,10 @@ int parse(struct compile_process *process) {
     vector_push(process->node_tree_vec, &node);
   }
 
-  assert(fixups_resolve(parser_fixup_sys));
+  if (!fixups_resolve(parser_fixup_sys)) {
+    compiler_error(current_process,
+                   "parser error: there is an unresolved reference \n");
+  }
   scope_free_root(process);
 
   return PARSE_ALL_OK;

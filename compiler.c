@@ -57,13 +57,13 @@ int compile_file(const char *filename, const char *out_filename, int flags) {
 
   // Preform parsing
   set_compile_process_for_array(process);
+  set_compile_process_for_helpers(process);
 
   if (parse(process) != PARSE_ALL_OK) {
     freeLexProcess(lex_process);
     return COMPILER_FAILED_WITH_ERRORS;
   }
 
-  set_compile_process_for_helpers(process);
   set_compile_process_for_stack_frame(process);
   set_compile_process_for_resolver_default_handler(process);
 

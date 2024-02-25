@@ -370,7 +370,9 @@ resolver_create_new_cast_entity(struct resolver_process *process,
 struct resolver_entity *resolver_create_new_entity_for_var_node_custom_scope(
     struct resolver_process *process, struct node *var_node, void *private,
     struct resolver_scope *scope, int offset) {
-  assert(var_node->type == NODE_TYPE_VARIABLE);
+  if (var_node->type != NODE_TYPE_VARIABLE) {
+    compiler_error(cp, "resolver error: not a variable node \n");
+  }
   struct resolver_entity *entity =
       resolver_create_new_entity(NULL, RESOLVER_ENTITY_TYPE_VARIABLE, private);
   if (!entity) {
@@ -785,7 +787,10 @@ struct resolver_entity *
 resolver_follow_array_bracket(struct resolver_process *resolver,
                               struct node *node,
                               struct resolver_result *result) {
-  assert(node->type == NODE_TYPE_BRACKET);
+  if (node->type != NODE_TYPE_BRACKET) {
+    compiler_error(cp, "resolver error: not a bracket node\n");
+  }
+
   int index = 0;
   struct datatype dtype;
   struct resolver_scope *scope = NULL;
@@ -973,7 +978,9 @@ void resolver_follow_part(struct resolver_process *resolver, struct node *node,
 void resolver_rule_apply_rules(struct resolver_entity *rule_entity,
                                struct resolver_entity *left_entity,
                                struct resolver_entity *right_entity) {
-  assert(rule_entity->type == RESOLVER_ENTITY_TYPE_RULE);
+  if (rule_entity->type != RESOLVER_ENTITY_TYPE_RULE) {
+    compiler_error(cp, "Resolver error: not an entity of rule type\n");
+  }
   if (left_entity) {
     left_entity->flags |= rule_entity->rule.left.flags;
   }

@@ -1133,7 +1133,9 @@ struct datatype *datatype_pointer_reduce(struct datatype *dtype, int by) {
 
 void codegen_generate_exp_node_for_arithmetic(struct node *node,
                                               struct history *history) {
-  assert(node->type == NODE_TYPE_EXPRESSION);
+  if (node->type != NODE_TYPE_EXPRESSION) {
+    compiler_error(current_process, "codegen error: not an expression node \n");
+  }
   int flags = history->flags;
 
   if (is_logical_operator(node->exp.op)) {

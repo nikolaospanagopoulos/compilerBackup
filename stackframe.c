@@ -67,7 +67,6 @@ void stackframe_push(struct node *func_node,
 }
 void stackframe_sub(struct node *func_node, int type, const char *name,
                     size_t amount) {
-  // assert((amount % STACK_PUSH_SIZE) == 0);
   if (amount % STACK_PUSH_SIZE != 0) {
     compiler_error(cp, "stackframe error: allignment issue");
   }
@@ -80,7 +79,6 @@ void stackframe_sub(struct node *func_node, int type, const char *name,
 
 void stackframe_add(struct node *func_node, int type, const char *name,
                     size_t amount) {
-  // assert((amount % STACK_PUSH_SIZE) == 0);
   if (amount % STACK_PUSH_SIZE != 0) {
     compiler_error(cp, "stackframe error: allignment issue");
   }
@@ -92,7 +90,6 @@ void stackframe_add(struct node *func_node, int type, const char *name,
 
 void stackframe_assert_empty(struct node *func_node) {
   struct stack_frame *frame = &func_node->func.frame;
-  // assert(vector_count(frame->elements) == 0);
   if (vector_count(frame->elements) != 0) {
     compiler_error(cp, "stack error: stack not empty");
   }

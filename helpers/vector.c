@@ -7,9 +7,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-static struct compile_process*process;
+static struct compile_process *process;
 static struct lex_process *pr;
-void setCompileProcessLexProcess(struct compile_process *cp, struct lex_process *lex) {
+void setCompileProcessLexProcess(struct compile_process *cp,
+                                 struct lex_process *lex) {
   process = cp;
   pr = lex;
 }
@@ -49,7 +50,6 @@ struct vector *vector_clone(struct vector *vector) {
   new_vec->data = new_data_address;
 
   // Saves are not cloned with vector_clone yet.
-  // assert(vector->saves == NULL);
   return new_vec;
 }
 

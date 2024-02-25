@@ -18,7 +18,6 @@ void array_brackets_free(struct array_brackets *brackets) { free(brackets); }
 
 void array_brackets_add(struct array_brackets *brackets,
                         struct node *bracket_node) {
-  // assert(bracket_node->type == NODE_TYPE_BRACKET);
   if (bracket_node->type != NODE_TYPE_BRACKET) {
     compiler_error(cp, "Array error: not a valid bracket node \n");
   }
@@ -47,7 +46,6 @@ size_t array_brackets_calculate_size_from_index(struct datatype *dtype,
   }
 
   while (array_bracket_node) {
-    // assert(array_bracket_node->bracket.inner->type == NODE_TYPE_NUMBER);
     if (array_bracket_node->bracket.inner->type != NODE_TYPE_NUMBER) {
       compiler_error(
           cp, "array error: not a valid number node inside array brackets \n");
@@ -70,7 +68,6 @@ size_t array_brackets_calculate_size(struct datatype *dtype,
 }
 
 int array_total_indexes(struct datatype *dtype) {
-  // assert(dtype->flags & DATATYPE_FLAG_IS_ARRAY);
   if (!(dtype->flags & DATATYPE_FLAG_IS_ARRAY)) {
     compiler_error(cp, "array error: not an array datatype \n");
   }

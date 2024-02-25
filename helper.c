@@ -9,7 +9,6 @@ void set_compile_process_for_helpers(struct compile_process *compile_proc) {
 }
 
 size_t variable_size(struct node *var_node) {
-  // assert(var_node->type == NODE_TYPE_VARIABLE);
   if (var_node->type != NODE_TYPE_VARIABLE) {
     compiler_error(
         cp,
@@ -41,7 +40,6 @@ bool is_logical_node(struct node *node) {
 }
 
 size_t variable_size_for_list(struct node *var_list_node) {
-  // assert(var_list_node->type == NODE_TYPE_VARIABLE_LIST);
   if (var_list_node->type != NODE_TYPE_VARIABLE_LIST) {
     compiler_error(cp, "error: cannot calculate variable list size of a node "
                        "that is not a variable list \n");
@@ -93,7 +91,6 @@ int align_value(int val, int to) {
 }
 
 int align_value_treat_positive(int val, int to) {
-  // assert(to >= 0);
   if (to < 0) {
     compiler_error(cp, "error: cannot calculate padding with a negative to a "
                        "function argument \n");
@@ -136,7 +133,6 @@ int array_multiplier(struct datatype *dtype, int index, int index_value) {
   struct node *bracket_node =
       vector_peek_ptr(dtype->array.brackets->n_brackets);
   while (bracket_node) {
-    // assert(bracket_node->bracket.inner->type == NODE_TYPE_NUMBER);
     if (bracket_node->bracket.inner->type != NODE_TYPE_NUMBER) {
       compiler_error(cp, "error: not a number node \n");
     }
@@ -181,12 +177,10 @@ int struct_offset(struct compile_process *compile_proc, const char *struct_name,
                   const char *var_name, struct node **var_node_out,
                   int last_pos, int flags) {
   struct symbol *struct_sym = symresolver_get_symbol(compile_proc, struct_name);
-  // assert(struct_sym && struct_sym->type == SYMBOL_TYPE_NODE);
   if (!struct_sym || struct_sym->type != SYMBOL_TYPE_NODE) {
     compiler_error(cp, "symbol doesnt exist or not is not of type symbol \n");
   }
   struct node *node = struct_sym->data;
-  // assert(node_is_struct_or_union(node));
   if (!node_is_struct_or_union(node)) {
     compiler_error(cp, "error: node is not of type struct or union \n");
   }
