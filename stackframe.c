@@ -1,5 +1,5 @@
 #include "compiler.h"
-#include "helpers/vector.h"
+#include "vector.h"
 #include <assert.h>
 
 static struct compile_process *cp;
@@ -36,10 +36,6 @@ void stackframe_pop_expecting(struct node *func_node, int expecting_type,
   if (!last_element) {
     compiler_error(cp, "stackframe error: No last element on the stack \n");
   }
-  /*
-  assert(last_element->type == expecting_type &&
-         S_EQ(last_element->name, expecting_name));
-                 */
   if (last_element->type != expecting_type &&
       !(S_EQ(last_element->name, expecting_name))) {
     compiler_error(cp, "stackframe error: expecting wrong element \n");

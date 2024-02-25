@@ -1,5 +1,5 @@
 #include "compiler.h"
-#include "helpers/vector.h"
+#include "vector.h"
 #include <assert.h>
 #include <stdarg.h>
 #include <stdio.h>
@@ -158,7 +158,10 @@ void asm_push_ins_push(const char *fmt, int stack_entity_type,
   asm_push_args(tmp_buf, args);
   va_end(args);
 
-  assert(current_function);
+  if (!current_function) {
+    compiler_error(current_process,
+                   "codegen error: there is no current function \n");
+  }
   stackframe_push(current_function,
                   &(struct stack_frame_element){.type = stack_entity_type,
                                                 .name = stack_entity_name});
@@ -173,7 +176,10 @@ int asm_push_ins_pop(const char *fmt, int expecting_stack_entity_type,
   asm_push_args(tmp_buf, args);
   va_end(args);
 
-  assert(current_function);
+  if (!current_function) {
+    compiler_error(current_process,
+                   "codegen error: there is no current function \n");
+  }
   struct stack_frame_element *element = stackframe_back(current_function);
   int flags = element->flags;
   stackframe_pop_expecting(current_function, expecting_stack_entity_type,
@@ -192,7 +198,11 @@ void asm_push_ins_push_with_data(const char *fmt, int stack_entity_type,
   va_end(args);
 
   flags |= STACK_FRAME_ELEMENT_FLAG_HAS_DATATYPE;
-  assert(current_function);
+  if (!current_function) {
+    compiler_error(current_process,
+                   "codegen error: there is no current function \n");
+  }
+
   stackframe_push(current_function,
                   &(struct stack_frame_element){.type = stack_entity_type,
                                                 .name = stack_entity_name,
@@ -309,7 +319,9 @@ void codegen_begin_exit_point() {
 void codegen_end_exit_point() {
   struct code_generator *gen = current_process->generator;
   struct codegen_exit_point *exit_point = codegen_current_exit_point();
-  assert(exit_point);
+  if (!exit_point) {
+    compiler_error(current_process, "codegen error: not an exit point\n");
+  }
   asm_push(".exit_point_%i:", exit_point->id);
   free(exit_point);
   vector_pop(gen->exit_points);
@@ -343,7 +355,9 @@ void codegen_begin_entry_point() {
 void codegen_end_entry_point() {
   struct code_generator *gen = current_process->generator;
   struct codegen_entry_point *entry_point = codegen_current_entry_point();
-  assert(entry_point);
+  if (!entry_point) {
+    compiler_error(current_process, "codegen error: not an entry point\n");
+  }
   free(entry_point);
   vector_pop(gen->entry_points);
 }
@@ -523,7 +537,11 @@ void codegen_generate_variable_access(struct node *node,
 void codegen_generate_identifier(struct node *node, struct history *history) {
   struct resolver_result *result =
       resolver_follow(current_process->resolver, node);
-  assert(resolver_result_ok(result));
+  if (!resolver_result_ok(result)) {
+    compiler_error(
+        current_process,
+        "codegen error: something went wrong with the resolver result \n");
+  }
 
   struct resolver_entity *entity = resolver_result_entity(result);
   codegen_generate_variable_access(node, entity, history);
@@ -734,7 +752,11 @@ void codegen_generate_assignment_part(struct node *node, const char *op,
   struct datatype right_operand_dtype;
   struct resolver_result *result =
       resolver_follow(current_process->resolver, node);
-  assert(resolver_result_ok(result));
+  if (!resolver_result_ok(result)) {
+    compiler_error(
+        current_process,
+        "resolver error: something went wrong with the resolver result\n");
+  }
   struct resolver_entity *root_assignment_entity =
       resolver_result_entity_root(result);
   const char *reg_to_use = "eax";

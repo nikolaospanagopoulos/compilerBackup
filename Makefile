@@ -60,12 +60,12 @@ all: ${OBJECTS}
 ./build/datatype.o: ./datatype.c
 	gcc datatype.c ${INCLUDES} -o ./build/datatype.o -g -c
 
-./build/helpers/buffer.o: ./helpers/buffer.c
-	gcc ./helpers/buffer.c ${INCLUDES} -o ./build/helpers/buffer.o -g -c
+./build/helpers/buffer.o: ./buffer.c
+	gcc ./buffer.c ${INCLUDES} -o ./build/helpers/buffer.o -g -c
 
 
-./build/helpers/vector.o: ./helpers/vector.c
-	gcc ./helpers/vector.c ${INCLUDES} -o ./build/helpers/vector.o -g -c
+./build/helpers/vector.o: ./vector.c
+	gcc ./vector.c ${INCLUDES} -o ./build/helpers/vector.o -g -c
 
 clean:
 	rm ./bin/main

@@ -1,5 +1,5 @@
 #include "compiler.h"
-#include "helpers/vector.h"
+#include "vector.h"
 static void symresolver_push_symbol(struct compile_process *process,
                                     struct symbol *sym) {
   vector_push(process->symbols.table, &sym);

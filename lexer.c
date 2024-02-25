@@ -1,6 +1,6 @@
+#include "buffer.h"
 #include "compiler.h"
-#include "helpers/buffer.h"
-#include "helpers/vector.h"
+#include "vector.h"
 #include <assert.h>
 #include <ctype.h>
 #include <stdlib.h>

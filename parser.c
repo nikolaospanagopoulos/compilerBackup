@@ -1,5 +1,5 @@
 #include "compiler.h"
-#include "helpers/vector.h"
+#include "vector.h"
 #include <assert.h>
 
 static struct compile_process *current_process;
@@ -693,9 +693,13 @@ size_t size_of_union(const char *union_name) {
     return 0;
   }
 
-  assert(sym->type == SYMBOL_TYPE_NODE);
+  if (sym->type != SYMBOL_TYPE_NODE) {
+    compiler_error(current_process, "Symbol error: not a node \n");
+  }
   struct node *node = sym->data;
-  assert(node->type == NODE_TYPE_UNION);
+  if (node->type == NODE_TYPE_UNION) {
+    compiler_error(current_process, "Node error: not a union\n");
+  }
   return node->_union.body_n->body.size;
 }
 
@@ -1796,6 +1800,7 @@ int parse_next() {
 }
 
 int parse(struct compile_process *process) {
+  set_compile_process_for_node(process);
   scope_create_root(process);
   current_process = process;
   parser_last_token = NULL;

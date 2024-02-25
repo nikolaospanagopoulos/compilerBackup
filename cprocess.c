@@ -1,5 +1,5 @@
 #include "compiler.h"
-#include "helpers/vector.h"
+#include "vector.h"
 #include <stdio.h>
 #include <stdlib.h>
 struct compile_process *compile_process_create(const char *filename,

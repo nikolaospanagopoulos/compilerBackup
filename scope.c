@@ -1,5 +1,5 @@
 #include "compiler.h"
-#include "helpers/vector.h"
+#include "vector.h"
 #include <assert.h>
 #include <memory.h>
 #include <stdlib.h>

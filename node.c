@@ -1,14 +1,18 @@
 #include "compiler.h"
-#include "helpers/vector.h"
+#include "vector.h"
 #include <assert.h>
 
 struct vector *node_vector = NULL;
 struct vector *node_vector_root = NULL;
 struct vector *garbage = NULL;
 struct vector *garbageForVector = NULL;
-
+static struct compile_process *compile_proc;
 struct node *parser_current_body = NULL;
 struct node *parser_current_function = NULL;
+
+void set_compile_process_for_node(struct compile_process *cp) {
+  compile_proc = cp;
+}
 
 void node_set_vector(struct vector *vec, struct vector *root_vec,
                      struct vector *garbage_vec,
@@ -90,8 +94,12 @@ void make_break_node() {
 
 void make_exp_node(struct node *left_node, struct node *right_node,
                    const char *op) {
-  assert(left_node);
-  assert(right_node);
+  if (!left_node) {
+    compiler_error(compile_proc, "left node doesnt exist \n");
+  }
+  if (!right_node) {
+    compiler_error(compile_proc, "right node doesnt exist \n");
+  }
   node_create(&(struct node){.type = NODE_TYPE_EXPRESSION,
                              .exp.left = left_node,
                              .exp.right = right_node,
@@ -295,7 +303,10 @@ struct node *variable_node(struct node *node) {
 }
 
 bool variable_node_is_primitive(struct node *node) {
-  assert(node->type == NODE_TYPE_VARIABLE);
+  if (node->type != NODE_TYPE_VARIABLE) {
+    compiler_error(compile_proc, "Not a variable node \n");
+  }
+
   return datatype_is_primitive(&node->var.type);
 }
 
@@ -308,12 +319,17 @@ struct node *variable_node_or_list(struct node *node) {
 }
 
 size_t function_node_argument_stack_addition(struct node *node) {
-  assert(node->type == NODE_TYPE_FUNCTION);
+
+  if (node->type != NODE_TYPE_FUNCTION) {
+    compiler_error(compile_proc, "Error: not a function node \n");
+  }
   return node->func.args.stack_addition;
 }
 
 size_t function_node_stack_size(struct node *node) {
-  assert(node->type == NODE_TYPE_FUNCTION);
+  if (node->type != NODE_TYPE_FUNCTION) {
+    compiler_error(compile_proc, "Error: not a function node \n");
+  }
   return node->func.stack_size;
 }
 
@@ -322,7 +338,9 @@ bool function_node_is_prototype(struct node *node) {
 }
 
 struct vector *function_node_argument_vec(struct node *node) {
-  assert(node->type == NODE_TYPE_FUNCTION);
+  if (node->type != NODE_TYPE_FUNCTION) {
+    compiler_error(compile_proc, "Error: not a function node \n");
+  }
   return node->func.args.vector;
 }
 bool node_is_expression_or_parentheses(struct node *node) {
