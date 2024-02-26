@@ -246,7 +246,10 @@ struct resolver_entity *resolver_create_new_entity_for_array_bracket(
   }
 
   entity->scope = scope;
-  assert(entity->scope);
+  if (!entity->scope) {
+    compiler_error(cp, "resolver error: scope doesnt exist \n");
+  }
+
   entity->name = NULL;
   entity->dtype = *dtype;
   entity->node = node;
@@ -272,7 +275,9 @@ struct resolver_entity *resolver_create_new_entity_for_merged_array_bracket(
   }
 
   entity->scope = scope;
-  assert(entity->scope);
+  if (!entity->scope) {
+    compiler_error(cp, "resolver error: scope doesnt exist \n");
+  }
   entity->name = NULL;
   entity->dtype = *dtype;
   entity->node = node;
@@ -380,7 +385,9 @@ struct resolver_entity *resolver_create_new_entity_for_var_node_custom_scope(
   }
 
   entity->scope = scope;
-  assert(entity->scope);
+  if (!entity->scope) {
+    compiler_error(cp, "resolver error: scope doesnt exist \n");
+  }
   entity->dtype = var_node->var.type;
   entity->node = var_node;
   entity->name = var_node->var.name;
@@ -731,7 +738,10 @@ resolver_follow_function_call(struct resolver_process *resolver,
   struct resolver_entity *func_call_entity =
       resolver_create_new_entity_for_function_call(result, resolver,
                                                    left_entity, NULL);
-  assert(func_call_entity);
+  if (!func_call_entity) {
+    compiler_error(cp, "resolver error: function call entity doesnt exist \n");
+  }
+
   func_call_entity->flags |= RESOLVER_ENTITY_FLAG_NO_MERGE_WITH_NEXT_ENTITY |
                              RESOLVER_ENTITY_FLAG_NO_MERGE_WITH_LEFT_ENTITY;
 
@@ -858,7 +868,9 @@ resolver_follow_unsupported_node(struct resolver_process *resolver,
 
   struct resolver_entity *unsupported_entity =
       resolver_create_new_entity_for_unsupported_node(result, node);
-  assert(unsupported_entity);
+  if (!unsupported_entity) {
+    compiler_error(cp, "resolver error: unsupported_entity doesnt exist \n");
+  }
   resolver_result_entity_push(result, unsupported_entity);
   return unsupported_entity;
 }
@@ -1214,8 +1226,12 @@ void resolver_finalize_result(struct resolver_process *resolver,
 }
 struct resolver_result *resolver_follow(struct resolver_process *resolver,
                                         struct node *node) {
-  assert(resolver);
-  assert(node);
+  if (!resolver) {
+    compiler_error(cp, "resolver doesnt exist\n");
+  }
+  if (!node) {
+    compiler_error(cp, "node doesnt exist\n");
+  }
   struct resolver_result *result = resolver_new_result(resolver);
   resolver_follow_part(resolver, node, result);
   if (!resolver_result_entity_root(result)) {

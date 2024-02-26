@@ -53,7 +53,10 @@ static void pushc(char c) { lex_process->function->push_char(lex_process, c); }
 
 static char assert_next_char(char c) {
   char next_c = nextc();
-  assert(c == next_c);
+  if (c != next_c) {
+    compiler_error(lex_process->compiler,
+                   "lexer error: char is not what was expected \n");
+  }
   return next_c;
 }
 

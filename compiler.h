@@ -1002,5 +1002,6 @@ void set_compile_process_for_resolver_default_handler(
     struct compile_process *compile_proc);
 void set_compile_process_for_helpers(struct compile_process *compile_proc);
 void set_compile_process_for_node(struct compile_process *cp);
+void set_compile_process_for_scope(struct compile_process *process);
 
 #endif

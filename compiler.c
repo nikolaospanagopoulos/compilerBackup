@@ -56,6 +56,7 @@ int compile_file(const char *filename, const char *out_filename, int flags) {
   process->token_vec = lex_process->token_vec;
 
   // Preform parsing
+  set_compile_process_for_scope(process);
   set_compile_process_for_array(process);
   set_compile_process_for_helpers(process);
 

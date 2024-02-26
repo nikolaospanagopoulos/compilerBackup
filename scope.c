@@ -3,7 +3,10 @@
 #include <assert.h>
 #include <memory.h>
 #include <stdlib.h>
-
+static struct compile_process *cp;
+void set_compile_process_for_scope(struct compile_process *process) {
+  cp = process;
+}
 struct scope *scope_alloc(struct compile_process *cp) {
   struct scope *scope = calloc(1, sizeof(struct scope));
   scope->entities = vector_create(sizeof(void *));
@@ -19,8 +22,12 @@ void scope_dealloc(struct scope *scope) {
 }
 
 struct scope *scope_create_root(struct compile_process *process) {
-  assert(!process->scope.root);
-  assert(!process->scope.current);
+  if (process->scope.root) {
+    compiler_error(cp, "scope error: root scope already exists \n");
+  }
+  if (process->scope.current) {
+    compiler_error(cp, "scope error: current scope already exists \n");
+  }
 
   struct scope *root_scope = scope_alloc(process);
   process->scope.root = root_scope;
@@ -35,8 +42,12 @@ void scope_free_root(struct compile_process *process) {
 }
 
 struct scope *scope_new(struct compile_process *process, int flags) {
-  assert(process->scope.root);
-  assert(process->scope.current);
+  if (!process->scope.root) {
+    compiler_error(cp, "scope error: root scope doesnt exist \n");
+  }
+  if (!process->scope.current) {
+    compiler_error(cp, "scope error: current scope doesnt exist \n");
+  }
 
   struct scope *new_scope = scope_alloc(process);
   new_scope->flags = flags;
