@@ -2,7 +2,11 @@
 #include "vector.h"
 #include <assert.h>
 #include <stdarg.h>
+#include <stddef.h>
 #include <stdio.h>
+
+#define STRUCTURE_PUSH_START_POSITION_ONE 1
+
 static struct compile_process *current_process = NULL;
 static struct node *current_function = NULL;
 
@@ -13,7 +17,7 @@ enum {
   RESPONSE_FLAG_UNARY_GET_ADDRESS = 0b00001000,
 };
 
-#define RESPONSE_SET(x) &(struct response{x})
+#define RESPONSE_SET(x) (&(struct response){x})
 #define RESPONSE_EMPTY_RESPONSE_SET()
 
 struct response_data {
@@ -440,10 +444,20 @@ void codegen_generate_global_variable(struct node *node) {
     break;
   }
 }
+
+void codegen_generate_struct(struct node *node) {
+  if (node->flags & NODE_FLAG_HAS_VARIABLE_COMBINED) {
+    codegen_generate_global_variable(node->_struct.var);
+  }
+}
+
 void codegen_generate_data_section_part(struct node *node) {
   switch (node->type) {
   case NODE_TYPE_VARIABLE:
     codegen_generate_global_variable(node);
+    break;
+  case NODE_TYPE_STRUCT:
+    codegen_generate_struct(node);
     break;
 
   default:
@@ -1242,6 +1256,35 @@ void codegen_discard_unused_stack() {
   }
 
   codegen_stack_add(stack_adjustment);
+}
+
+void codegen_plus_or_minus_string_for_value(char *out, int val, size_t len) {
+  memset(out, 0, len);
+  if (val < 0) {
+    sprintf(out, "%i", val);
+  } else {
+    sprintf(out, "+%i", val);
+  }
+}
+
+void codegen_generate_structure_push(struct resolver_entity *entity,
+                                     struct history *history, int startPos) {
+  asm_push("; STRUCTURE PUSH");
+  size_t structure_size = align_value(entity->dtype.size, DATA_SIZE_DWORD);
+
+  int pushes = structure_size / DATA_SIZE_DWORD;
+
+  for (int i = pushes - 1; i >= startPos; i++) {
+    char fmt[10];
+    int chunk_offset = (i * DATA_SIZE_DWORD);
+    codegen_plus_or_minus_string_for_value(fmt, chunk_offset, sizeof(fmt));
+    asm_push_ins_push_with_data(
+        "dword [%s%s]", STACK_FRAME_ELEMENT_TYPE_PUSHED_VALUE, "result_value",
+        0, &(struct stack_frame_data){.dtype = entity->dtype}, "ebx", fmt);
+  }
+  asm_push("; END STRUCTURE PUSH");
+  codegen_response_acknowledge(
+      RESPONSE_SET(.flags = RESPONSE_FLAG_PUSHED_STRUCTURE));
 }
 
 void codegen_generate_statement(struct node *node, struct history *history) {
